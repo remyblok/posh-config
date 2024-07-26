@@ -8,5 +8,5 @@ function IsInteractive {
 }
 
 if (IsInteractive) {
-	oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\paradox.omp.json" | Invoke-Expression
+	oh-my-posh init pwsh --config "https://raw.githubusercontent.com/remyblok/posh-config/main/rjb.omp.json" | Invoke-Expression
 }
