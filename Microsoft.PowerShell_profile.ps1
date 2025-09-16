@@ -47,6 +47,41 @@ if (IsInteractive) {
 		Write-Output "Installing module Az and dependencies"
 		Install-Module -Name Az -Repository PSGallery -Force
 	}
+
+	Register-ArgumentCompleter -Native -CommandName az -ScriptBlock {
+		param($wordToComplete, $commandAst, $cursorPosition)
+		$completion_file = New-TemporaryFile
+		$env:ARGCOMPLETE_USE_TEMPFILES = 1
+		$env:_ARGCOMPLETE_STDOUT_FILENAME = $completion_file
+		$env:COMP_LINE = $commandAst
+		$env:COMP_POINT = $cursorPosition
+		$env:_ARGCOMPLETE = 1
+		$env:_ARGCOMPLETE_SUPPRESS_SPACE = 0
+		$env:_ARGCOMPLETE_IFS = "`n"
+		$env:_ARGCOMPLETE_SHELL = 'powershell'
+		az 2>&1 | Out-Null
+		Get-Content $completion_file | Sort-Object | ForEach-Object {
+			[System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)
+		}
+		Remove-Item $completion_file, Env:\_ARGCOMPLETE_STDOUT_FILENAME, Env:\ARGCOMPLETE_USE_TEMPFILES, Env:\COMP_LINE, Env:\COMP_POINT, Env:\_ARGCOMPLETE, Env:\_ARGCOMPLETE_SUPPRESS_SPACE, Env:\_ARGCOMPLETE_IFS, Env:\_ARGCOMPLETE_SHELL
+	}
+
+	Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock {
+		param($wordToComplete, $commandAst, $cursorPosition)
+
+		dotnet complete --position $cursorPosition $commandAst.ToString() | ForEach-Object {
+			[System.Management.Automation.CompletionResult]::new(
+				$_,               # completionText
+				$_,               # listItemText
+				'ParameterValue', # resultType
+				$_                # toolTip
+			)
+		}
+	}
+
+
+	Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
+	Set-Alias az azps
 }
 
 #f45873b3-b655-43a6-b217-97c00aa0db58 PowerToys CommandNotFound module
